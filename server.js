@@ -1,14 +1,15 @@
 "use strict";
 
 const crypto = require("node:crypto");
-const fs = require("node:fs/promises");
 const path = require("node:path");
 require("dotenv").config();
 const express = require("express");
 const session = require("express-session");
-const MemoryStore = require("memorystore")(session);
+const MongoStore = require("connect-mongo");
+const mongoose = require("mongoose");
+const { connectDatabase } = require("./db");
+const Product = require("./models/Product");
 const {
-  loadUsers,
   requireAuthentication,
   verifyCsrfToken,
   router: authRouter,
@@ -16,15 +17,11 @@ const {
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
-const DATA_DIRECTORY = path.join(__dirname, "data");
-const PRODUCTS_FILE = path.join(DATA_DIRECTORY, "products.json");
 const SESSION_SECRET = process.env.SESSION_SECRET;
 const CATEGORIES = ["Books", "Electronics", "Stationery", "Other"];
 const CONDITIONS = ["Brand New", "Like New", "Good", "Fair"];
 const MAX_IMAGE_DATA_LENGTH = 3 * 1024 * 1024;
-
-let products = [];
-let writeQueue = Promise.resolve();
+let sessionMiddleware;
 
 if (!SESSION_SECRET || SESSION_SECRET.length < 32) {
   throw new Error("Set SESSION_SECRET to a random value of at least 32 characters in your .env file.");
@@ -35,110 +32,13 @@ if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
 }
 
-const sessionStore = new MemoryStore({
-  checkPeriod: 24 * 60 * 60 * 1000,
-  max: 1000,
+app.use((request, response, next) => {
+  if (!sessionMiddleware) {
+    return next(new Error("Session storage is not ready."));
+  }
+  return sessionMiddleware(request, response, next);
 });
-
-app.use(
-  session({
-    name: "campus_cart.sid",
-    secret: SESSION_SECRET,
-    store: sessionStore,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 8 * 60 * 60 * 1000,
-    },
-  }),
-);
 app.use("/api/auth", authRouter);
-
-function isStoredProduct(product) {
-  return (
-    product !== null &&
-    typeof product === "object" &&
-    typeof product.id === "string" &&
-    typeof product.title === "string" &&
-    typeof product.description === "string" &&
-    typeof product.price === "number" &&
-    Number.isFinite(product.price) &&
-    product.price >= 0 &&
-    typeof product.category === "string" &&
-    CATEGORIES.includes(product.category) &&
-    typeof product.condition === "string" &&
-    CONDITIONS.includes(product.condition) &&
-    typeof product.location === "string" &&
-    typeof product.seller === "string" &&
-    typeof product.contact === "string" &&
-    typeof product.datePosted === "string" &&
-    Number.isFinite(Date.parse(product.datePosted)) &&
-    (product.image === undefined || typeof product.image === "string")
-  );
-}
-
-async function loadProducts() {
-  await fs.mkdir(DATA_DIRECTORY, { recursive: true });
-
-  let fileContents;
-  try {
-    fileContents = await fs.readFile(PRODUCTS_FILE, "utf8");
-  } catch (error) {
-    if (error.code !== "ENOENT") throw error;
-    await fs.writeFile(PRODUCTS_FILE, "[]\n", "utf8");
-    return [];
-  }
-
-  let savedProducts;
-  try {
-    savedProducts = JSON.parse(fileContents);
-  } catch (error) {
-    throw new Error(`Could not parse ${PRODUCTS_FILE}: ${error.message}`);
-  }
-
-  if (
-    !Array.isArray(savedProducts) ||
-    !savedProducts.every(isStoredProduct) ||
-    new Set(savedProducts.map((product) => product.id)).size !== savedProducts.length
-  ) {
-    throw new Error(
-      `${PRODUCTS_FILE} must contain a JSON array of valid products with unique IDs.`,
-    );
-  }
-
-  return savedProducts;
-}
-
-function changeProducts(change) {
-  const operation = writeQueue.then(async () => {
-    const updatedProducts = change(products);
-    if (!updatedProducts) return null;
-
-    const temporaryFile = `${PRODUCTS_FILE}.${crypto.randomUUID()}.tmp`;
-    try {
-      await fs.writeFile(temporaryFile, `${JSON.stringify(updatedProducts, null, 2)}\n`, {
-        encoding: "utf8",
-        flag: "wx",
-      });
-      await fs.rename(temporaryFile, PRODUCTS_FILE);
-      products = updatedProducts;
-      return updatedProducts;
-    } catch (error) {
-      await fs.rm(temporaryFile, { force: true });
-      throw error;
-    }
-  });
-
-  writeQueue = operation.catch(() => {});
-  return operation;
-}
-
-function saveNewProduct(product) {
-  return changeProducts((currentProducts) => [product, ...currentProducts]);
-}
 
 function readFilter(query, name, response) {
   const value = query[name];
@@ -152,6 +52,10 @@ function readFilter(query, name, response) {
     return null;
   }
   return value.trim();
+}
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function validateProduct(body) {
@@ -225,56 +129,60 @@ function validateProduct(body) {
       price: body.price,
       category: body.category,
       condition: body.condition,
-      datePosted: new Date().toISOString(),
+      datePosted: new Date(),
       image,
     },
   };
 }
 
 function publicProduct(product) {
-  const { sellerId, ...listing } = product;
-  return listing;
+  const listing = typeof product.toObject === "function" ? product.toObject() : product;
+  const { sellerId, _id, ...publicListing } = listing;
+  return publicListing;
 }
 
-app.get("/api/products", (request, response) => {
+app.get("/api/products", async (request, response, next) => {
   const category = readFilter(request.query, "category", response);
   const location = readFilter(request.query, "location", response);
   const search = readFilter(request.query, "search", response);
   if (category === null || location === null || search === null) return;
 
-  const results = products.filter((product) => {
-    const isUserListing =
-      typeof product.sellerId === "string" && product.sellerId.length > 0;
-    const matchesCategory =
-      !category || product.category.toLowerCase() === category.toLowerCase();
-    const matchesLocation =
-      !location || product.location.toLowerCase().includes(location.toLowerCase());
-    const searchTerm = search.toLowerCase();
-    const matchesSearch =
-      !searchTerm ||
-      product.title.toLowerCase().includes(searchTerm) ||
-      product.description.toLowerCase().includes(searchTerm);
-
-    return isUserListing && matchesCategory && matchesLocation && matchesSearch;
-  });
-
-  response.json(results.map(publicProduct));
-});
-
-app.get("/api/products/:id", (request, response) => {
-  const product = products.find((item) => item.id === request.params.id);
-  if (!product) {
-    return response.status(404).json({ error: "Product not found." });
+  const query = { sellerId: { $exists: true, $ne: "" } };
+  if (category) query.category = new RegExp(`^${escapeRegex(category)}$`, "i");
+  if (location) query.location = new RegExp(escapeRegex(location), "i");
+  if (search) {
+    const searchRegex = new RegExp(escapeRegex(search), "i");
+    query.$or = [{ title: searchRegex }, { description: searchRegex }];
   }
-  return response.json(publicProduct(product));
+
+  try {
+    const products = await Product.find(query).sort({ datePosted: -1 }).lean();
+    return response.json(products.map(publicProduct));
+  } catch (error) {
+    return next(error);
+  }
 });
 
-app.get("/api/my-products", requireAuthentication, (request, response) => {
-  const ownProducts = products
-    .filter((product) => product.sellerId === request.user.id)
-    .map(publicProduct);
-  response.set("Cache-Control", "no-store");
-  return response.json(ownProducts);
+app.get("/api/products/:id", async (request, response, next) => {
+  try {
+    const product = await Product.findOne({ id: request.params.id }).lean();
+    if (!product) return response.status(404).json({ error: "Product not found." });
+    return response.json(publicProduct(product));
+  } catch (error) {
+    return next(error);
+  }
+});
+
+app.get("/api/my-products", requireAuthentication, async (request, response, next) => {
+  try {
+    const products = await Product.find({ sellerId: request.user.id })
+      .sort({ datePosted: -1 })
+      .lean();
+    response.set("Cache-Control", "no-store");
+    return response.json(products.map(publicProduct));
+  } catch (error) {
+    return next(error);
+  }
 });
 
 app.post(
@@ -283,17 +191,14 @@ app.post(
   verifyCsrfToken,
   async (request, response, next) => {
     const result = validateProduct(request.body);
-    if (result.error) {
-      return response.status(400).json({ error: result.error });
-    }
+    if (result.error) return response.status(400).json({ error: result.error });
 
     try {
-      const product = {
+      const product = await Product.create({
         ...result.product,
         seller: request.user.name,
         sellerId: request.user.id,
-      };
-      await saveNewProduct(product);
+      });
       return response.status(201).json(publicProduct(product));
     } catch (error) {
       return next(error);
@@ -312,41 +217,28 @@ app.put(
     }
 
     try {
-      const updatedProducts = await changeProducts((currentProducts) => {
-        const existingProduct = currentProducts.find((product) => product.id === request.params.id);
-        if (!existingProduct) {
-          const error = new Error("Product not found.");
-          error.status = 404;
-          throw error;
-        }
-        if (existingProduct.sellerId !== request.user.id) {
-          const error = new Error("You can only edit your own listings.");
-          error.status = 403;
-          throw error;
-        }
-
-        const updatedProduct = {
-          ...validation.product,
-          id: existingProduct.id,
-          datePosted: existingProduct.datePosted,
-          image:
-            request.body.image === undefined
-              ? existingProduct.image || ""
-              : validation.product.image,
-          seller: request.user.name,
-          sellerId: request.user.id,
-        };
-        request.updatedProduct = updatedProduct;
-        return currentProducts.map((product) =>
-          product.id === existingProduct.id ? updatedProduct : product,
-        );
-      });
-      if (!updatedProducts) {
-        return response.status(500).json({ error: "The product could not be updated." });
+      const existingProduct = await Product.findOne({ id: request.params.id });
+      if (!existingProduct) {
+        return response.status(404).json({ error: "Product not found." });
       }
-      return response.json(publicProduct(request.updatedProduct));
+      if (existingProduct.sellerId !== request.user.id) {
+        return response.status(403).json({ error: "You can only edit your own listings." });
+      }
+
+      existingProduct.set({
+        ...validation.product,
+        id: existingProduct.id,
+        datePosted: existingProduct.datePosted,
+        image:
+          request.body.image === undefined
+            ? existingProduct.image || ""
+            : validation.product.image,
+        seller: request.user.name,
+        sellerId: request.user.id,
+      });
+      await existingProduct.save();
+      return response.json(publicProduct(existingProduct));
     } catch (error) {
-      if (error.status) return response.status(error.status).json({ error: error.message });
       return next(error);
     }
   },
@@ -358,29 +250,17 @@ app.delete(
   verifyCsrfToken,
   async (request, response, next) => {
     try {
-      let deleted = false;
-      await changeProducts((currentProducts) => {
-        const existingProduct = currentProducts.find((product) => product.id === request.params.id);
-        if (!existingProduct) {
-          const error = new Error("Product not found.");
-          error.status = 404;
-          throw error;
-        }
-        if (existingProduct.sellerId !== request.user.id) {
-          const error = new Error("You can only delete your own listings.");
-          error.status = 403;
-          throw error;
-        }
-
-        deleted = true;
-        return currentProducts.filter((product) => product.id !== existingProduct.id);
-      });
-      if (!deleted) {
-        return response.status(500).json({ error: "The product could not be deleted." });
+      const existingProduct = await Product.findOne({ id: request.params.id });
+      if (!existingProduct) {
+        return response.status(404).json({ error: "Product not found." });
       }
+      if (existingProduct.sellerId !== request.user.id) {
+        return response.status(403).json({ error: "You can only delete your own listings." });
+      }
+
+      await Product.deleteOne({ _id: existingProduct._id });
       return response.status(204).end();
     } catch (error) {
-      if (error.status) return response.status(error.status).json({ error: error.message });
       return next(error);
     }
   },
@@ -435,12 +315,26 @@ app.use((error, request, response, next) => {
 });
 
 async function startServer() {
-  products = await loadProducts();
-  const userCount = await loadUsers();
+  await connectDatabase();
+  sessionMiddleware = session({
+    name: "campus_cart.sid",
+    secret: SESSION_SECRET,
+    store: MongoStore.create({
+      client: mongoose.connection.getClient(),
+      collectionName: "sessions",
+      ttl: 8 * 60 * 60,
+    }),
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 8 * 60 * 60 * 1000,
+    },
+  });
   app.listen(PORT, () => {
     console.log(`Campus Cart is running at http://localhost:${PORT}`);
-    console.log(`Loaded ${products.length} saved product listing(s).`);
-    console.log(`Loaded ${userCount} registered user account(s).`);
   });
 }
 

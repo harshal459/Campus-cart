@@ -1,0 +1,58 @@
+[
+  {
+    "id": "2313a6d6-8a3d-450a-8e80-28ca9631837d",
+    "title": "Calculator",
+    "description": "calci-991",
+    "location": "mess",
+    "contact": "harshal123@gmail.com",
+    "price": 800,
+    "category": "Electronics",
+    "condition": "Good",
+    "datePosted": "2026-10-26T11:48:06.800Z",
+    "image": "",
+    "seller": "Harshal Patil",
+    "sellerId": "b0c51996-4637-410c-ba87-50223e832dc2"
+  },
+  {
+    "id": "35102bc8-5765-42d4-96a9-55cd568c0cf6",
+    "title": "EGD Equipment",
+    "description": ".",
+    "location": "Boys Mess",
+    "contact": "harshal123@gmail.com",
+    "price": 120,
+    "category": "Stationery",
+    "condition": "Brand New",
+    "datePosted": "2026-10-26T09:23:47.221Z",
+    "image": "",
+    "seller": "Harshal Patil",
+    "sellerId": "b0c51996-4637-410c-ba87-50223e832dc2"
+  },
+  {
+    "id": "a0ae57c3-34af-427a-a52f-327c8765830d",
+    "title": "C language notes",
+    "description": ".",
+    "location": "Mess",
+    "contact": "harshalpatil1234@gmail.com",
+    "price": 0,
+    "category": "Books",
+    "condition": "Good",
+    "datePosted": "2026-10-24T04:50:24.062Z",
+    "image": "",
+    "seller": "Harshal Patil",
+    "sellerId": "faed71ec-e4b6-4dfd-b4c9-c2e096d41cc5"
+  },
+  {
+    "id": "6d8a3f89-063d-4b0b-9fe3-608e54deb823",
+    "title": "Calculator",
+    "description": "Cal-991 Edition",
+    "location": "Library",
+    "contact": "harshalpatil1234@gmail.com",
+    "price": 900,
+    "category": "Electronics",
+    "condition": "Good",
+    "datePosted": "2026-10-23T19:53:09.994Z",
+    "image": "",
+    "seller": "Harshal Patil",
+    "sellerId": "faed71ec-e4b6-4dfd-b4c9-c2e096d41cc5"
+  }
+]

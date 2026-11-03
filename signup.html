@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Sign Up | Campus Cart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/auth-pages.css" />
+    <script src="/auth-pages.js" defer></script>
+  </head>
+  <body class="auth-page">
+    <main class="auth-card auth-card--signup">
+      <a class="auth-brand" href="/" aria-label="Campus Cart home">
+        <span>Campus Cart</span>
+      </a>
+      <p class="auth-eyebrow">JOIN YOUR CAMPUS MARKETPLACE</p>
+      <h1>Create your account</h1>
+      <p class="auth-intro">Sign up to post and manage listings for NMIMS University students.</p>
+
+      <p class="auth-message" id="auth-message" role="status" aria-live="polite" hidden></p>
+
+      <form class="auth-form" id="signup-form" novalidate>
+        <label for="signup-name">Full name</label>
+        <input id="signup-name" name="name" type="text" autocomplete="name" maxlength="100" required />
+
+        <label for="signup-email">Student email address</label>
+        <input id="signup-email" name="email" type="email" autocomplete="email" maxlength="254" required />
+
+        <label for="signup-password">Password</label>
+        <div class="password-field">
+          <input id="signup-password" name="password" type="password" autocomplete="new-password" minlength="8" required />
+          <button class="password-toggle" type="button" data-password-target="signup-password" aria-label="Show password" aria-pressed="false">Show</button>
+        </div>
+
+        <label for="signup-confirm-password">Confirm password</label>
+        <div class="password-field">
+          <input id="signup-confirm-password" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required />
+          <button class="password-toggle" type="button" data-password-target="signup-confirm-password" aria-label="Show password" aria-pressed="false">Show</button>
+        </div>
+
+        <button class="auth-submit" type="submit">Create Account</button>
+      </form>
+
+      <p class="auth-switch">Already registered? <a href="/login">Log in</a></p>
+      <a class="auth-home-link" href="/">Return to the marketplace</a>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Log In | Campus Cart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/auth-pages.css" />
+    <script src="/auth-pages.js" defer></script>
+  </head>
+  <body class="auth-page">
+    <main class="auth-card">
+      <a class="auth-brand" href="/" aria-label="Campus Cart home">
+        <span>Campus Cart</span>
+      </a>
+      <p class="auth-eyebrow">YOUR CAMPUS MARKETPLACE</p>
+      <h1>Welcome Back!</h1>
+      <p class="auth-intro">Log in to manage your listings and connect with students.</p>
+
+      <p class="auth-message" id="auth-message" role="status" aria-live="polite" hidden></p>
+
+      <form class="auth-form" id="login-form" novalidate>
+        <label for="login-email">Student email address</label>
+        <input id="login-email" name="email" type="email" autocomplete="email" maxlength="254" required />
+
+        <label for="login-password">Password</label>
+        <div class="password-field">
+          <input id="login-password" name="password" type="password" autocomplete="current-password" required />
+          <button class="password-toggle" type="button" data-password-target="login-password" aria-label="Show password" aria-pressed="false">Show</button>
+        </div>
+
+        <button class="auth-submit" type="submit">Log In</button>
+      </form>
+
+      <p class="auth-switch">New to Campus Cart? <a href="/signup">Create an account</a></p>
+      <a class="auth-home-link" href="/">Return to the marketplace</a>
+    </main>
+  </body>
+</html>

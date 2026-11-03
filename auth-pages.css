@@ -1,0 +1,212 @@
+.auth-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 2rem 1rem;
+  background:
+    radial-gradient(ellipse at top left, rgba(227, 30, 36, 0.08), transparent 38%),
+    var(--surface);
+}
+.auth-card {
+  width: min(100%, 28rem);
+  padding: clamp(1.5rem, 5vw, 2.5rem);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: #ffffff;
+  box-shadow: var(--raised-shadow);
+}
+.auth-card--signup {
+  width: min(100%, 32rem);
+}
+.auth-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 2rem;
+  color: var(--primary-container);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.auth-eyebrow {
+  margin-bottom: 0.5rem;
+  color: var(--primary-container);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.auth-card h1 {
+  color: var(--on-surface);
+  font-size: clamp(1.75rem, 6vw, 2rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.auth-intro {
+  margin-top: 0.6rem;
+  color: var(--on-surface-variant);
+}
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 1.5rem;
+}
+.auth-form > label {
+  margin-top: 0.4rem;
+  color: var(--on-surface);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.auth-form input {
+  width: 100%;
+  min-height: 2.9rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  background: #ffffff;
+  color: var(--on-surface);
+  font: inherit;
+}
+.auth-form input:focus {
+  border-color: var(--primary-container);
+  outline: 3px solid rgba(227, 30, 36, 0.14);
+}
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.password-field input {
+  padding-right: 4.5rem;
+}
+.password-toggle {
+  position: absolute;
+  right: 0.65rem;
+  padding: 0.35rem;
+  color: var(--primary-container);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.auth-submit {
+  min-height: 2.9rem;
+  margin-top: 0.9rem;
+  border-radius: 0.55rem;
+  background: var(--primary-container);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  transition: background 0.2s ease;
+}
+.auth-submit:hover {
+  background: var(--primary);
+}
+.auth-submit:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+.auth-switch {
+  margin-top: 1.25rem;
+  color: var(--on-surface-variant);
+  text-align: center;
+}
+.auth-switch a,
+.auth-home-link {
+  color: var(--primary-container);
+  font-weight: 600;
+}
+.auth-home-link {
+  display: block;
+  margin-top: 1rem;
+  text-align: center;
+}
+.auth-message {
+  margin-top: 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+}
+.auth-message[hidden] {
+  display: none;
+}
+.auth-message--error {
+  background: #fff0f0;
+  color: #991b1b;
+}
+.auth-message--success {
+  background: #f0fdf4;
+  color: #166534;
+}
+.auth-disclaimer {
+  margin-top: 0.6rem;
+  color: var(--on-surface-variant);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.auth-nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.auth-nav__link,
+.auth-nav__signup,
+.auth-nav__logout {
+  padding: 0.55rem 0.8rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.auth-nav__link,
+.auth-nav__logout {
+  color: var(--primary-container);
+}
+.auth-nav__signup {
+  background: var(--primary-container);
+  color: #ffffff;
+}
+.auth-nav__signup:hover {
+  background: var(--primary);
+}
+.auth-nav__name {
+  max-width: 10rem;
+  overflow: hidden;
+  color: var(--on-surface);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.auth-nav__account {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.auth-required-message {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: var(--secondary-container);
+  color: var(--on-surface);
+}
+.auth-required-message a {
+  color: var(--primary-container);
+  font-weight: 700;
+}
+.sell-form[hidden],
+.auth-required-message[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 480px) {
+  .auth-nav {
+    gap: 0.1rem;
+  }
+  .auth-nav__link,
+  .auth-nav__signup,
+  .auth-nav__logout {
+    padding: 0.5rem;
+    font-size: 0.78rem;
+  }
+  .auth-nav__name {
+    max-width: 5.5rem;
+    font-size: 0.75rem;
+  }
+}

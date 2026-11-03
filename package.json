@@ -1,0 +1,17 @@
+{
+  "name": "campus-cart-marketplace",
+  "version": "1.0.0",
+  "description": "A student marketplace mini-project built with Express and vanilla JavaScript",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^18.0.8",
+    "express": "^4.21.2",
+    "express-session": "^1.19.0",
+    "memorystore": "^1.6.8"
+  }
+}

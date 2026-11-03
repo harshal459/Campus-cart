@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Campus Cart | Student Marketplace</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="auth-pages.css" />
+  <script src="./code.js" defer></script>
+</head>
+
+<body>
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <a class="brand" href="#home">Campus Cart</a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a class="active" href="#home">Home</a>
+        <a href="#browse-items">Browse Items</a>
+        <a href="#sell-an-item">Sell an Item</a>
+      </nav>
+      <div class="auth-nav" id="auth-nav" aria-live="polite">
+        <a class="auth-nav__link" href="/login">Login</a>
+        <a class="auth-nav__signup" href="/signup">Sign Up</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="toast" id="toast" role="status" aria-live="polite">
+      <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+      <span id="toast-text">Listing posted successfully!</span>
+    </div>
+
+    <section class="hero" id="home">
+      <div class="container">
+        <div class="hero-content">
+          <h1>Buy &amp; Sell on <span>Campus</span></h1>
+          <p>
+            The student-to-student marketplace for textbooks, dorm
+            electronics, lab gear, and stationery at fair campus prices.
+          </p>
+          <div class="search-bar">
+            <div class="search-input">
+              <span class="material-symbols-outlined" aria-hidden="true">search</span>
+              <input id="search" type="search" placeholder="Search books, calculators, notes..."
+                aria-label="Search listings" />
+              <button class="icon-button hidden" id="clear-search-button" type="button" aria-label="Clear search">
+                <span class="material-symbols-outlined" aria-hidden="true">close</span>
+              </button>
+            </div>
+            <button class="button button-primary" id="search-button" type="button">
+              Search
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="browse-items">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Browse Campus Gear</h2>
+          <div class="category-list" id="categories" aria-label="Filter by category">
+            <button class="category-button active" data-category="all" type="button">
+              All Items
+            </button>
+            <button class="category-button" data-category="Books" type="button">
+              Books
+            </button>
+            <button class="category-button" data-category="Electronics" type="button">
+              Electronics
+            </button>
+            <button class="category-button" data-category="Stationery" type="button">
+              Stationery
+            </button>
+            <button class="category-button" data-category="Other" type="button">
+              Other
+            </button>
+          </div>
+        </div>
+
+        <p class="products-loading hidden" id="loading-state" role="status">
+          Loading listings...
+        </p>
+        <p class="products-message hidden" id="products-message" role="alert"></p>
+        <div class="product-grid" id="products">
+          <!-- Product cards are created from listings returned by the server. -->
+        </div>
+        <div class="empty-state hidden" id="empty-state">
+          <span class="material-symbols-outlined" aria-hidden="true">search_off</span>
+          <h3>No Campus Items Found</h3>
+          <p>
+            We couldn't find matches for your current filter or search
+            criteria. Try a broader keyword or switch categories.
+          </p>
+          <button class="button button-primary" id="clear-filters" type="button">
+            View All Items
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section sell-section" id="sell-an-item">
+      <div class="container form-container">
+        <div class="form-card">
+          <h2>Sell an Item on Campus</h2>
+          <p class="auth-required-message" id="auth-required-message" hidden>
+            Please <a href="/login">log in</a> to post a listing. Contact
+            information you add to a listing is visible to marketplace visitors.
+          </p>
+
+          <form class="sell-form" id="sell-form" hidden>
+            <div class="form-grid">
+              <div class="form-field form-field-wide">
+                <label for="item-title">Item Title / Course Name *</label>
+                <input id="item-title" type="text" placeholder="e.g. Stewart Calculus Early Transcendentals 9th Ed"
+                  required />
+              </div>
+
+              <div class="form-field">
+                <label for="item-category">Category *</label>
+                <select id="item-category" required>
+                  <option disabled selected value="">Select category...</option>
+                  <option value="Books">Books &amp; Course Materials</option>
+                  <option value="Electronics">Electronics &amp; Tech</option>
+                  <option value="Stationery">Stationery &amp; Lab Gear</option>
+                  <option value="Other">Campus Essentials</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="item-price">Price in Rupees (₹)</label>
+                <input id="item-price" type="number" min="0" step="0.5" placeholder="00" required />
+              </div>
+
+              <div class="form-field">
+                <label for="item-condition">Condition *</label>
+                <select id="item-condition" required>
+                  <option disabled selected value="">Select item condition...</option>
+                  <option value="Brand New">Brand New (Unopened/With Tags)</option>
+                  <option value="Like New">Like New (Barely used, pristine)</option>
+                  <option value="Good">Good (Minor wear, fully functional)</option>
+                  <option value="Fair">Fair (Noticeable wear, functions well)</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="item-meeting-location">Preferred Meeting Location *</label>
+                <input id="item-meeting-location" type="text" placeholder="Enter the meeting location" required />
+              </div>
+
+              <div class="form-field">
+                <label for="item-contact">Contact (Phone/Email) *</label>
+                <input id="item-contact" type="tel" placeholder="91+***** *****" required />
+              </div>
+
+              <div class="form-field">
+                <label for="item-seller">Your Name</label>
+                <input id="item-seller" type="text" placeholder="Alex R. • Science Hall" required />
+              </div>
+
+              <div class="form-field form-field-wide">
+                <label for="item-image">Upload Photo</label>
+                <input id="item-image" type="file" accept="image/*" />
+              </div>
+
+              <div class="form-field form-field-wide">
+                <label for="item-description">Item Description *</label>
+                <textarea id="item-description" placeholder="Describe the item's condition and what's included" rows="3"
+                  required></textarea>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="button button-primary" type="submit">
+                <span class="material-symbols-outlined" aria-hidden="true">publish</span>
+                Post Item Listing
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <div class="contact-modal hidden" id="contact-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-card">
+        <button class="modal-close" id="close-modal" type="button" aria-label="Close contact details">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+        <p class="modal-label">
+        </p>
+        <h2 id="modal-title">Item Name</h2>
+        <p class="modal-price" id="modal-price">₹0.00</p>
+
+        <div class="seller-details">
+          <div class="seller-avatar" aria-hidden="true">
+            <span id="seller-avatar">S</span>
+          </div>
+          <div class="seller-info">
+            <p id="seller-name">Seller Name</p>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <h3>Seller Notes</h3>
+          <p id="modal-description">Description details go here.</p>
+        </div>
+
+        <div class="meetup-details">
+          <span class="material-symbols-outlined" aria-hidden="true">location_on</span>
+          <div>
+            <p>Seller's Preferred Meetup Spot:</p>
+            <p id="meetup-location">Campus Library</p>
+          </div>
+        </div>
+
+        <div class="contact-actions">
+          <a class="button button-primary" href="#" id="email-action">
+            <span class="material-symbols-outlined" aria-hidden="true">mail</span>
+            <span id="email-label">Email via Student Webmail</span>
+          </a>
+          <button class="button button-secondary" id="copy-contact" type="button">
+            <span class="material-symbols-outlined" aria-hidden="true">content_copy</span>
+            <span id="copy-label">Copy Contact Info</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <h2>Campus Cart</h2>
+      <p>
+        The secure, verified student-to-student collegiate marketplace. Buy
+        textbooks, dorm supplies, gear, and tech with direct campus pick-up.
+      </p>
+      <p class="developer-details">
+        Developers: Harshal Patil, Krushna Shinde<br />
+        Contact No: 8767897675<br />
+        Email: HARSHAL.PATIL368@nmims.in, KRUSHNA.SHINDE376@nmims.in
+      </p>
+      <div class="footer-bottom">
+        <p>
+          © 2025 Campus Cart • NMIMS University Student Marketplace Project.
+          All rights reserved.
+        </p>
+        <nav class="footer-nav" aria-label="Footer navigation">
+          <a href="#home">Home</a>
+          <a href="#browse-items">Browse Items</a>
+          <a href="#sell-an-item">Sell an Item</a>
+          <a href="/login">Student Portal</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+</body>
+
+</html>
